@@ -1,15 +1,15 @@
 import typing as tp
 
-import jax
-import jax.numpy as jnp
-import jax.ops
 import matplotlib.pyplot as plt
-import numpy as np
 import typer
-from jax.experimental import optix
 from sklearn.linear_model import LinearRegression
 
+
+import numpy as np
+import jax
+import jax.numpy as jnp
 import elegy
+import optax
 
 
 class MixtureModel(elegy.Module):
@@ -61,12 +61,14 @@ def main(batch_size: int = 64, k: int = 5, debug: bool = False):
     visualize_data(X_train, y_train)
 
     model = elegy.Model(
-        module=MixtureModel(k=k), loss=MixtureNLL(), optimizer=optix.adam(3e-4)
+        module=MixtureModel(k=k), loss=MixtureNLL(), optimizer=optax.adam(3e-4)
     )
 
     model.summary(X_train[:batch_size], depth=1)
 
-    model.fit(x=X_train, y=y_train, epochs=500, batch_size=batch_size, shuffle=True)
+    model.fit(
+        x=X_train, y=y_train, epochs=500, batch_size=batch_size, shuffle=True,
+    )
 
     visualize_model(X_train, y_train, model, k)
 
@@ -101,13 +103,15 @@ def safe_log(x):
 
 
 def visualize_data(X_train, y_train):
+    plt.scatter(X_train[..., 0], y_train[..., 0])
+    plt.show()
+
     m = LinearRegression()
     m.fit(X_train, y_train)
     x = np.linspace(X_train.min(), X_train.max(), 100)[..., None]
     y = m.predict(x)
     plt.scatter(X_train[..., 0], y_train[..., 0])
     plt.plot(x, y[:, 0], "k")
-
     plt.show()
 
 
